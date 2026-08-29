@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "FISL PLATFORM"
+description = "A bold, paid AI-skills learning community with protected lessons, member progress, conversations, and Revolut-powered GBP membership access."
+version = "1.0.0"
+id = "artifacts/fisl-platform"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21854
+
+[services.development]
+run = "pnpm --filter @workspace/fisl-platform run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/fisl-platform", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/fisl-platform/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21854"
+BASE_PATH = "/"
