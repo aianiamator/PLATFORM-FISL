@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787958731207,
+      "tag": "0000_payment-security-constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787958950343,
+      "tag": "0001_normalize-legacy-payment-controls",
+      "breakpoints": true
+    }
+  ]
+}
