@@ -1,0 +1,817 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: FISL PLATFORM learning community API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: membership
+  - name: learning
+  - name: community
+  - name: admin
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /membership:
+    get:
+      operationId: getMembership
+      tags: [membership]
+      summary: Get membership offers and current payment status
+      responses:
+        "200":
+          description: Membership configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Membership"
+  /me:
+    get:
+      operationId: getCurrentMember
+      tags: [membership]
+      summary: Get the signed-in member profile
+      responses:
+        "200":
+          description: Current member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /payment-requests:
+    get:
+      operationId: listPaymentRequests
+      tags: [membership]
+      summary: List the current member's payment requests
+      responses:
+        "200":
+          description: Payment requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createPaymentRequest
+      tags: [membership]
+      summary: Submit a manual Revolut payment confirmation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequestInput"
+      responses:
+        "201":
+          description: Payment request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentRequest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /pathway:
+    get:
+      operationId: getPathway
+      tags: [learning]
+      summary: Get the published learning pathway
+      responses:
+        "200":
+          description: Course pathway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pathway"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /lessons/{lessonId}:
+    get:
+      operationId: getLesson
+      tags: [learning]
+      summary: Get a lesson and protected playback handoff
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      responses:
+        "200":
+          description: Lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /lessons/{lessonId}/playback:
+    get:
+      operationId: getLessonPlayback
+      tags: [learning]
+      summary: Create a short-lived entitlement-checked video playback handoff
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      responses:
+        "200":
+          description: Short-lived playback handoff
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaybackHandoff"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /lessons/{lessonId}/progress:
+    put:
+      operationId: updateLessonProgress
+      tags: [learning]
+      summary: Save lesson completion state
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressInput"
+      responses:
+        "200":
+          description: Updated progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Progress"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /lessons/{lessonId}/comments:
+    get:
+      operationId: listLessonComments
+      tags: [community]
+      summary: List comments on a lesson
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      responses:
+        "200":
+          description: Lesson comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createLessonComment
+      tags: [community]
+      summary: Add a comment to a lesson
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /discussion:
+    get:
+      operationId: listDiscussionPosts
+      tags: [community]
+      summary: List recent discussion posts
+      responses:
+        "200":
+          description: Discussion feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiscussionPost"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createDiscussionPost
+      tags: [community]
+      summary: Start a discussion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscussionPostInput"
+      responses:
+        "201":
+          description: Discussion post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscussionPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/overview:
+    get:
+      operationId: getAdminOverview
+      tags: [admin]
+      summary: Get admin overview metrics and queues
+      responses:
+        "200":
+          description: Admin overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOverview"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/payment-requests:
+    get:
+      operationId: listAdminPaymentRequests
+      tags: [admin]
+      summary: List payment requests awaiting review
+      responses:
+        "200":
+          description: Payment request queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminPaymentRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/payment-requests/{requestId}:
+    patch:
+      operationId: reviewPaymentRequest
+      tags: [admin]
+      summary: Approve or reject a payment request
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentReviewInput"
+      responses:
+        "200":
+          description: Reviewed payment request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPaymentRequest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/members:
+    get:
+      operationId: listAdminMembers
+      tags: [admin]
+      summary: List members and current subscriptions
+      responses:
+        "200":
+          description: Member access list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminMember"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/members/{memberId}/access-history:
+    get:
+      operationId: listAdminMemberAccessHistory
+      tags: [admin]
+      summary: List a member's access change history
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: Member access changes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAccessChange"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/members/{memberId}/revoke:
+    post:
+      operationId: revokeMemberSubscription
+      tags: [admin]
+      summary: Revoke a member's active subscription
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevokeMembershipInput"
+      responses:
+        "200":
+          description: Revoked member access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/lessons:
+    post:
+      operationId: createLesson
+      tags: [admin]
+      summary: Create a lesson draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonInput"
+      responses:
+        "201":
+          description: Lesson draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /admin/lessons/{lessonId}:
+    patch:
+      operationId: updateLesson
+      tags: [admin]
+      summary: Update or publish a lesson
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonUpdate"
+      responses:
+        "200":
+          description: Updated lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /admin/lessons/{lessonId}/video:
+    get:
+      operationId: getLessonVideoAssociation
+      tags: [admin]
+      summary: Get the protected video associated with a lesson
+      parameters:
+        - $ref: "#/components/parameters/LessonId"
+      responses:
+        "200":
+          description: Video association, or null when no video is attached
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/VideoAssociation"
+                  - type: "null"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  parameters:
+    LessonId:
+      name: lessonId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    RequestId:
+      name: requestId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unavailable:
+      description: Video provider is unavailable or not configured
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+    Member:
+      type: object
+      required: [id, clerkUserId, name, email, role, accessStatus]
+      properties:
+        id: { type: integer }
+        clerkUserId: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [member, admin] }
+        accessStatus: { type: string, enum: [unpaid, pending, active, expired] }
+        joinedAt: { type: string, format: date-time }
+    MembershipOffer:
+      type: object
+      required: [id, label, interval, pricePence, currency, paymentLink]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        interval: { type: string, enum: [month] }
+        pricePence: { type: integer }
+        currency: { type: string, enum: [GBP] }
+        paymentLink: { type: string, format: uri }
+    Membership:
+      type: object
+      required: [provider, currency, offers, verificationNote]
+      properties:
+        provider: { type: string, enum: [revolut] }
+        currency: { type: string, enum: [GBP] }
+        offers:
+          type: array
+          items: { $ref: "#/components/schemas/MembershipOffer" }
+        verificationNote: { type: string }
+        currentRequest:
+          anyOf:
+            - { $ref: "#/components/schemas/PaymentRequest" }
+            - { type: "null" }
+    PaymentRequestInput:
+      type: object
+      required: [plan, paidAt, amountPence, reference]
+      properties:
+        plan: { type: string, enum: [month] }
+        paidAt: { type: string, format: date-time }
+        amountPence: { type: integer, minimum: 1 }
+        reference:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Unique reference shown for this specific Revolut transfer; sender names alone are not accepted.
+        note: { type: string, maxLength: 500 }
+    PaymentRequest:
+      type: object
+      required: [id, plan, amountPence, currency, paidAt, reference, status, submittedAt]
+      properties:
+        id: { type: integer }
+        plan: { type: string, enum: [month, year] }
+        amountPence: { type: integer }
+        currency: { type: string, enum: [GBP] }
+        paidAt: { type: string, format: date-time }
+        reference: { type: string }
+        note: { type: [string, "null"] }
+        status: { type: string, enum: [pending, approved, rejected] }
+        submittedAt: { type: string, format: date-time }
+        reviewedAt: { type: [string, "null"], format: date-time }
+        reviewNote: { type: [string, "null"] }
+    Pathway:
+      type: object
+      required: [id, title, eyebrow, description, totalLessons, completedLessons, lessons]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        eyebrow: { type: string }
+        description: { type: string }
+        totalLessons: { type: integer }
+        completedLessons: { type: integer }
+        lessons:
+          type: array
+          items: { $ref: "#/components/schemas/LessonSummary" }
+    LessonSummary:
+      type: object
+      required: [id, title, module, durationMinutes, status, order, completed]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        module: { type: string }
+        durationMinutes: { type: integer }
+        status: { type: string, enum: [published, draft, scheduled] }
+        order: { type: integer }
+        completed: { type: boolean }
+        description: { type: string }
+    Lesson:
+      allOf:
+        - $ref: "#/components/schemas/LessonSummary"
+        - type: object
+          required: [body, video]
+          properties:
+            body: { type: string }
+            video:
+              anyOf:
+                - $ref: "#/components/schemas/ProtectedVideo"
+                - { type: "null" }
+    ProtectedVideo:
+      type: object
+      required: [provider, status]
+      properties:
+        provider: { type: string, enum: [cloudflare_stream] }
+        status: { type: string, enum: [protected, unavailable] }
+    PlaybackHandoff:
+      type: object
+      required: [provider, playbackUrl, expiresAt]
+      properties:
+        provider: { type: string, enum: [cloudflare_stream] }
+        playbackUrl: { type: string, format: uri }
+        expiresAt: { type: string, format: date-time }
+    VideoAssociation:
+      type: object
+      required: [provider, externalId]
+      properties:
+        provider: { type: string, enum: [cloudflare_stream] }
+        externalId:
+          type: string
+          minLength: 32
+          maxLength: 32
+          pattern: "^[A-Fa-f0-9]{32}$"
+    ProgressInput:
+      type: object
+      required: [completed]
+      properties:
+        completed: { type: boolean }
+    Progress:
+      type: object
+      required: [lessonId, completed, completedAt]
+      properties:
+        lessonId: { type: integer }
+        completed: { type: boolean }
+        completedAt: { type: [string, "null"], format: date-time }
+    CommentInput:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, minLength: 1, maxLength: 1000 }
+    Comment:
+      type: object
+      required: [id, lessonId, authorName, content, createdAt]
+      properties:
+        id: { type: integer }
+        lessonId: { type: integer }
+        authorName: { type: string }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+    DiscussionPostInput:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 140 }
+        content: { type: string, minLength: 1, maxLength: 2000 }
+    DiscussionPost:
+      type: object
+      required: [id, authorName, title, content, replyCount, createdAt]
+      properties:
+        id: { type: integer }
+        authorName: { type: string }
+        title: { type: string }
+        content: { type: string }
+        replyCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+    AdminOverview:
+      type: object
+      required: [activeMembers, completionRate, newConversations, revenuePence, pendingPayments, recentMembers]
+      properties:
+        activeMembers: { type: integer }
+        completionRate: { type: number }
+        newConversations: { type: integer }
+        revenuePence: { type: integer }
+        pendingPayments: { type: integer }
+        recentMembers:
+          type: array
+          items: { $ref: "#/components/schemas/AdminMember" }
+    AdminMember:
+      type: object
+      required: [id, name, email, role, plan, progress, activity, accessStatus, currentSubscription, latestRevocation]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [member, admin] }
+        plan: { type: string }
+        progress: { type: integer }
+        activity: { type: string }
+        accessStatus: { type: string, enum: [unpaid, pending, active, expired] }
+        currentSubscription:
+          anyOf:
+            - $ref: "#/components/schemas/AdminSubscription"
+            - type: "null"
+        latestRevocation:
+          anyOf:
+            - $ref: "#/components/schemas/AdminRevocation"
+            - type: "null"
+    AdminSubscription:
+      type: object
+      required: [id, plan, status, startsAt, endsAt]
+      properties:
+        id: { type: integer }
+        plan: { type: string, enum: [month, year] }
+        status: { type: string, enum: [active, inactive] }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+    AdminRevocation:
+      type: object
+      required: [id, revokedAt, revokedBy, reason]
+      properties:
+        id: { type: integer }
+        revokedAt: { type: string, format: date-time }
+        revokedBy:
+          $ref: "#/components/schemas/AdminRevocationActor"
+        reason: { type: ["string", "null"] }
+    AdminAccessChange:
+      type: object
+      required: [id, action, changedAt, changedBy, reason]
+      properties:
+        id: { type: integer }
+        action: { type: string, enum: [revoked, reactivated] }
+        changedAt: { type: string, format: date-time }
+        changedBy:
+          $ref: "#/components/schemas/AdminRevocationActor"
+        reason: { type: ["string", "null"] }
+    AdminRevocationActor:
+      type: object
+      required: [id, name, email]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+    RevokeMembershipInput:
+      type: object
+      properties:
+        reason: { type: ["string", "null"], maxLength: 500 }
+    AdminPaymentRequest:
+      allOf:
+        - $ref: "#/components/schemas/PaymentRequest"
+        - type: object
+          required: [memberId, memberName, memberEmail]
+          properties:
+            memberId: { type: integer }
+            memberName: { type: string }
+            memberEmail: { type: string, format: email }
+    PaymentReviewInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected] }
+        reviewNote: { type: string, maxLength: 500 }
+    LessonInput:
+      type: object
+      required: [title, module, durationMinutes, description, body, order]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 200 }
+        module: { type: string, minLength: 2, maxLength: 100 }
+        durationMinutes: { type: integer, minimum: 1 }
+        description: { type: string, maxLength: 500 }
+        body: { type: string, maxLength: 10000 }
+        order: { type: integer, minimum: 1 }
+        status: { type: string, enum: [draft, published, scheduled] }
+        video:
+          anyOf:
+            - $ref: "#/components/schemas/VideoAssociation"
+            - type: "null"
+
+    LessonUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 3, maxLength: 200 }
+        module: { type: string, minLength: 2, maxLength: 100 }
+        durationMinutes: { type: integer, minimum: 1 }
+        description: { type: string, maxLength: 500 }
+        body: { type: string, maxLength: 10000 }
+        order: { type: integer, minimum: 1 }
+        status: { type: string, enum: [draft, published, scheduled] }
+        video:
+          anyOf:
+            - $ref: "#/components/schemas/VideoAssociation"
+            - type: "null"
