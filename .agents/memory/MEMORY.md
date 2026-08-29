@@ -1,0 +1,2 @@
+- [Protected video provider](protected-video-provider.md) — FISL playback requires expiring entitlement-checked tokens; unlisted YouTube links are not access control.
+- [Security-critical database migrations](security-critical-db-migrations.md) — ship invariants in startup migrations; schema declarations and dev pushes are not release guarantees.
